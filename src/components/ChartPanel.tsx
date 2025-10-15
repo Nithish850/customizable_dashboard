@@ -24,6 +24,7 @@ import {
 } from "../components/ui/select";
 import { Button } from "../components/ui/button";
 import { X } from "lucide-react";
+import ChartOptions from "./ChartOptions";
 
 interface ChartPanelProps {
   config: ChartConfig;
@@ -55,7 +56,7 @@ export const ChartPanel = ({ config, onUpdate, onRemove }: ChartPanelProps) => {
                 strokeDasharray="3 3"
                 stroke="hsl(var(--border))"
               />
-              <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
+              <XAxis dataKey={config.xAxis || "name"} stroke="hsl(var(--muted-foreground))" />
               <YAxis stroke="hsl(var(--muted-foreground))" />
               <Tooltip
                 contentStyle={{
@@ -65,11 +66,16 @@ export const ChartPanel = ({ config, onUpdate, onRemove }: ChartPanelProps) => {
                 }}
               />
               <Legend />
-              <Bar
-                dataKey="value"
-                fill="hsl(var(--chart-1))"
-                radius={[8, 8, 0, 0]}
-              />
+              {(Array.isArray(config.yAxis) ? config.yAxis : [config.yAxis || "value"]).map(
+                (yAxis, index) => (
+                  <Bar
+                    key={yAxis}
+                    dataKey={yAxis}
+                    fill={CHART_COLORS[index % CHART_COLORS.length]}
+                    radius={[8, 8, 0, 0]}
+                  />
+                )
+              )}
             </BarChart>
           </ResponsiveContainer>
         );
@@ -82,7 +88,7 @@ export const ChartPanel = ({ config, onUpdate, onRemove }: ChartPanelProps) => {
                 strokeDasharray="3 3"
                 stroke="hsl(var(--border))"
               />
-              <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
+              <XAxis dataKey={config.xAxis || "name"} stroke="hsl(var(--muted-foreground))" />
               <YAxis stroke="hsl(var(--muted-foreground))" />
               <Tooltip
                 contentStyle={{
@@ -94,7 +100,7 @@ export const ChartPanel = ({ config, onUpdate, onRemove }: ChartPanelProps) => {
               <Legend />
               <Line
                 type="monotone"
-                dataKey="value"
+                dataKey={config.yAxis as string || "value"}
                 stroke="hsl(var(--chart-2))"
                 strokeWidth={3}
                 dot={{ fill: "hsl(var(--chart-2))", r: 6 }}
@@ -118,7 +124,7 @@ export const ChartPanel = ({ config, onUpdate, onRemove }: ChartPanelProps) => {
                 }
                 outerRadius={100}
                 fill="hsl(var(--chart-1))"
-                dataKey="value"
+                dataKey={config.columns?.[0] || "value"}
               >
                 {data.map((entry, index) => (
                   <Cell
@@ -170,7 +176,7 @@ export const ChartPanel = ({ config, onUpdate, onRemove }: ChartPanelProps) => {
           </Button>
         </div>
       </div>
-
+      <ChartOptions config={config} onUpdate={onUpdate} />
       <div className="flex-1 p-4">{renderChart()}</div>
     </div>
   );

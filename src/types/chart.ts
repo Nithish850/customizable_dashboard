@@ -9,6 +9,9 @@ export interface ChartConfig {
   y: number;
   w: number;
   h: number;
+  xAxis?: string;
+  yAxis?: string | string[];
+  columns?: string[];
 }
 
 export interface DataPoint {
