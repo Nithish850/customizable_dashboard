@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Widget } from "../../types/widget";
+import { Link } from "react-router-dom";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -156,29 +157,34 @@ const NewDashboard = () => {
         </div>
         <div className="p-6 space-y-6 ">
           <div className="rounded-2xl p-5 bg-black">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="gap-2 bg-white">
-                  <Plus className="h-4 w-4" />
-                  Add Chart
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                {widgets.map((widget) => (
-                  <DropdownMenuItem
-                    key={widget.id}
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData("text/plain", widget.id);
-                    }}
-                    draggable
-                    className="flex gap-2"
-                  >
-                    <GripVertical className="h-4 w-4" />
-                    {widget.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="gap-2 bg-white">
+                    <Plus className="h-4 w-4" />
+                    Add Chart
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {widgets.map((widget) => (
+                    <DropdownMenuItem
+                      key={widget.id}
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData("text/plain", widget.id);
+                      }}
+                      draggable
+                      className="flex gap-2"
+                    >
+                      <GripVertical className="h-4 w-4" />
+                      {widget.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Link to="/edit">
+                <Button className="gap-2 bg-white">Go to Edit Page</Button>
+              </Link>
+            </div>
             {charts.length === 0 ? (
               <div
                 className="flex min-h-[400px] items-center justify-center"

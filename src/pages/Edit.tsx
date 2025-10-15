@@ -17,6 +17,7 @@ import {
   updateWidget,
 } from "../store/widgetSlice";
 import { Widget } from "../types/widget";
+import { Link } from "react-router-dom";
 
 function Edit() {
   const [open, setOpen] = React.useState(false);
@@ -34,9 +35,14 @@ function Edit() {
     <div>
       <header className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-pretty">Widgets</h1>
-        <Button className="bg-black text-white" onClick={() => setOpen(true)}>
-          Create Widget
-        </Button>
+        <div className="flex gap-2">
+          <Link to="/dashboard">
+            <Button className="bg-black text-white">Back to Dashboard</Button>
+          </Link>
+          <Button className="bg-black text-white" onClick={() => setOpen(true)}>
+            Create Widget
+          </Button>
+        </div>
       </header>
 
       {widgets.length === 0 ? (
