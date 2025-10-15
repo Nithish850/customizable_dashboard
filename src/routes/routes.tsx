@@ -1,18 +1,18 @@
 import { Routes, Route, BrowserRouter } from "react-router-dom";
-import Home from "../components/pages/Home";
-import Contact from "../components/pages/Contact";
-
+import Dashboard from "../pages/Dashboard";
+import NotFound from "../pages/NotFound";
+import NewDashboard from "../pages/NewDashboardPage";
 
 const AppRoutes = () => {
-    return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="*" element={<h1>Page Not Found</h1>} />
-            </Routes>
-        </BrowserRouter>
-    );
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/dashboard" element={<NewDashboard />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
 };
 
 export default AppRoutes;
