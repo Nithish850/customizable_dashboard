@@ -22,28 +22,62 @@ import {
 
 type WidgetType = "pie" | "line" | "bar";
 
+interface Widget {
+  id: string;
+  name: string;
+  type: WidgetType;
+  xAxis?: string;
+  yAxis?: string;
+}
+
 export interface AddWidgetDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit?: (data: {
-    name: string;
-    type: WidgetType;
-    xAxis?: string;
-    yAxis?: string;
-  }) => void;
+  onSubmit?: (data: Omit<Widget, "id">) => void;
+  widget?: Widget;
+  widgets: Widget[];
 }
 
 export function AddWidgetDialog({
   open,
   onOpenChange,
   onSubmit,
+  widget,
+  widgets,
 }: AddWidgetDialogProps) {
-  const [name, setName] = React.useState("");
-  const [type, setType] = React.useState<WidgetType>("bar");
-  const [xAxis, setXAxis] = React.useState<string>("");
-  const [yAxis, setYAxis] = React.useState<string>("");
+  const [configuration, setConfiguration] = React.useState({
+    name: "",
+    type: "bar" as WidgetType,
+    columns: {
+      xAxis: "",
+      yAxis: "",
+    },
+  });
   const [error, setError] = React.useState<string | null>(null);
-  const [swapped, setSwapped] = React.useState(false);
+
+  const isEditMode = widget !== undefined;
+
+  React.useEffect(() => {
+    if (widget) {
+      setConfiguration({
+        name: widget.name,
+        type: widget.type,
+        columns: {
+          xAxis: widget.xAxis || "",
+          yAxis: widget.yAxis || "",
+        },
+      });
+    } else {
+      setConfiguration({
+        name: "",
+        type: "bar",
+        columns: {
+          xAxis: "",
+          yAxis: "",
+        },
+      });
+    }
+  }, [widget]);
 
   // Mock columns for selection
   const metricColumns = [
@@ -57,36 +91,58 @@ export function AddWidgetDialog({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (type === "bar") {
-      if (!xAxis || !yAxis) {
-        setError("Please choose both X axis and Y axis columns.");
+
+    const { name, type, columns } = configuration;
+
+    if (
+      !isEditMode &&
+      widgets.some(
+        (w) => w.name.toLowerCase() === name.trim().toLowerCase()
+      )
+    ) {
+      setError("Widget name already exists.");
+      return;
+    }
+
+    if (type === "bar" || type === "line" || type === "pie") {
+      if (!columns.xAxis || !columns.yAxis) {
+        setError("Please choose both columns.");
         return;
       }
     }
 
-    const base = { name: name.trim(), type } as const;
-    const payload = type === "bar" ? { ...base, xAxis, yAxis } : base;
+    onSubmit?.({
+      name,
+      type,
+      xAxis: columns.xAxis,
+      yAxis: columns.yAxis,
+    });
 
-    onSubmit?.(payload);
-    console.log("[v0] AddWidget submitted:", payload);
-
-    // Reset and close
-    setName("");
-    setType("pie");
-    setXAxis("");
-    setYAxis("");
+    if (!isEditMode) {
+      setConfiguration({
+        name: "",
+        type: "bar",
+        columns: {
+          xAxis: "",
+          yAxis: "",
+        },
+      });
+    }
     setError(null);
     onOpenChange(false);
-    setSwapped(false);
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-white">
         <DialogHeader>
-          <DialogTitle className="text-pretty">Add Widget</DialogTitle>
+          <DialogTitle className="text-pretty">
+            {isEditMode ? "Edit Widget" : "Create Widget"}
+          </DialogTitle>
           <DialogDescription className="text-pretty">
-            Enter a name and choose a widget type to add it to your dashboard.
+            {isEditMode
+              ? "Edit the details of your widget."
+              : "Enter a name and choose a widget type to add it to your dashboard."}
           </DialogDescription>
         </DialogHeader>
 
@@ -96,24 +152,29 @@ export function AddWidgetDialog({
             <Input
               id="widget-name"
               placeholder="e.g. Sales Overview"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={configuration.name}
+              onChange={(e) =>
+                setConfiguration({ ...configuration, name: e.target.value })
+              }
               required
+              disabled={isEditMode}
             />
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="widget-type">Widget Type</Label>
             <Select
-              value={type}
-              onValueChange={(v: WidgetType) => {
-                setType(v);
-                if (v !== "bar") {
-                  setXAxis("");
-                  setYAxis("");
-                  setError(null);
-                  setSwapped(false);
-                }
+              value={configuration.type}
+              onValuechange={(v: WidgetType) => {
+                setConfiguration({
+                  ...configuration,
+                  type: v,
+                  columns: {
+                    xAxis: "",
+                    yAxis: "",
+                  },
+                });
+                setError(null);
               }}
             >
               <SelectTrigger id="widget-type" aria-label="Select widget type">
@@ -127,11 +188,19 @@ export function AddWidgetDialog({
             </Select>
           </div>
 
-          {type === "bar" && (
-            <div className="flex items-end justify-center  gap-4 ">
+          {(configuration.type === "bar" || configuration.type === "line") && (
+            <div className="flex items-end justify-center gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="x-axis">X Axis Column</Label>
-                <Select value={xAxis} onValueChange={setXAxis}>
+                <Select
+                  value={configuration.columns.xAxis}
+                  onValueChange={(v) =>
+                    setConfiguration({
+                      ...configuration,
+                      columns: { ...configuration.columns, xAxis: v },
+                    })
+                  }
+                >
                   <SelectTrigger id="x-axis" aria-label="Select x-axis column">
                     <SelectValue placeholder="Select X axis" />
                   </SelectTrigger>
@@ -144,18 +213,20 @@ export function AddWidgetDialog({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="">
+              <div>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   aria-label="Swap X and Y axis"
                   onClick={() => {
-                    const prevX = xAxis;
-                    const prevY = yAxis;
-                    setXAxis(prevY);
-                    setYAxis(prevX);
-                    setSwapped((s) => !s);
+                    setConfiguration({
+                      ...configuration,
+                      columns: {
+                        xAxis: configuration.columns.yAxis,
+                        yAxis: configuration.columns.xAxis,
+                      },
+                    });
                     setError(null);
                   }}
                 >
@@ -164,7 +235,15 @@ export function AddWidgetDialog({
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="y-axis">Y Axis Column</Label>
-                <Select value={yAxis} onValueChange={setYAxis}>
+                <Select
+                  value={configuration.columns.yAxis}
+                  onValueChange={(v) =>
+                    setConfiguration({
+                      ...configuration,
+                      columns: { ...configuration.columns, yAxis: v },
+                    })
+                  }
+                >
                   <SelectTrigger id="y-axis" aria-label="Select y-axis column">
                     <SelectValue placeholder="Select Y axis" />
                   </SelectTrigger>
@@ -177,7 +256,6 @@ export function AddWidgetDialog({
                   </SelectContent>
                 </Select>
               </div>
-
               {error && (
                 <p className="col-span-full text-sm text-destructive">
                   {error}
@@ -185,46 +263,21 @@ export function AddWidgetDialog({
               )}
             </div>
           )}
-          {type === "line" && (
-            <div className="flex items-end justify-center  gap-4 ">
+          {configuration.type === "pie" && (
+            <div className="flex items-end justify-center gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="x-axis">X Axis Column</Label>
-                <Select value={xAxis} onValueChange={setXAxis}>
-                  <SelectTrigger id="x-axis" aria-label="Select x-axis column">
-                    <SelectValue placeholder="Select X axis" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    {metricColumns.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  aria-label="Swap X and Y axis"
-                  onClick={() => {
-                    const prevX = xAxis;
-                    const prevY = yAxis;
-                    setXAxis(prevY);
-                    setYAxis(prevX);
-                    setSwapped((s) => !s);
-                    setError(null);
-                  }}
+                <Label htmlFor="x-axis">Column 1</Label>
+                <Select
+                  value={configuration.columns.xAxis}
+                  onValueChange={(v) =>
+                    setConfiguration({
+                      ...configuration,
+                      columns: { ...configuration.columns, xAxis: v },
+                    })
+                  }
                 >
-                  Swap axes
-                </Button>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="y-axis">Y Axis Column</Label>
-                <Select value={yAxis} onValueChange={setYAxis}>
-                  <SelectTrigger id="y-axis" aria-label="Select y-axis column">
-                    <SelectValue placeholder="Select Y axis" />
+                  <SelectTrigger id="x-axis" aria-label="Select column 1">
+                    <SelectValue placeholder="Select column 1" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
                     {metricColumns.map((c) => (
@@ -235,12 +288,29 @@ export function AddWidgetDialog({
                   </SelectContent>
                 </Select>
               </div>
-
-              {error && (
-                <p className="col-span-full text-sm text-destructive">
-                  {error}
-                </p>
-              )}
+              <div className="grid gap-2">
+                <Label htmlFor="y-axis">Column 2</Label>
+                <Select
+                  value={configuration.columns.yAxis}
+                  onValueChange={(v) =>
+                    setConfiguration({
+                      ...configuration,
+                      columns: { ...configuration.columns, yAxis: v },
+                    })
+                  }
+                >
+                  <SelectTrigger id="y-axis" aria-label="Select column 2">
+                    <SelectValue placeholder="Select column 2" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    {metricColumns.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           )}
 
@@ -252,7 +322,9 @@ export function AddWidgetDialog({
             >
               Cancel
             </Button>
-            <Button type="submit">Add Widget</Button>
+            <Button type="submit">
+              {isEditMode ? "Save Changes" : "Create Widget"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
