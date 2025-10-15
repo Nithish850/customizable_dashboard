@@ -1,28 +1,26 @@
 import { useState } from "react";
 import type { ChartConfig } from "../../types/chart";
 import { MetricCard } from "../cards/MetricCard";
-import { Plus, User } from "lucide-react";
+import { GripVertical, Plus, User } from "lucide-react";
 import { Button } from "../ui/button";
 import { ChartPanel } from "../ChartPanel";
 import { Responsive, WidthProvider, type Layout } from "react-grid-layout";
 import { toast } from "sonner";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { Widget } from "../../types/widget";
 
-const defaultCharts: ChartConfig[] = [
-  {
-    id: "chart-1",
-    type: "bar",
-    title: "Sales Overview",
-    swapAxes: false,
-    x: 0,
-    y: 0,
-    w: 6,
-    h: 2,
-  },
-];
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 const NewDashboard = () => {
-  const [charts, setCharts] = useState<ChartConfig[]>(defaultCharts);
+  const { widgets } = useSelector((state: RootState) => state.widgets);
+  const [charts, setCharts] = useState<ChartConfig[]>([]);
 
   const handleLayoutChange = (layout: Layout[]) => {
     setCharts((prevCharts) =>
@@ -55,19 +53,25 @@ const NewDashboard = () => {
     toast.success("Chart removed");
   };
 
-  const handleAddChart = () => {
-    const newChart: ChartConfig = {
-      id: `chart-${Date.now()}`,
-      type: "bar",
-      title: `New Chart ${charts.length + 1}`,
-      swapAxes: false,
-      x: 0,
-      y: Infinity,
-      w: 6,
-      h: 2,
-    };
-    setCharts((prevCharts) => [...prevCharts, newChart]);
-    toast.success("Chart added");
+  const onDrop = (layout: Layout[], item: Layout, e: Event) => {
+    const widgetId = (e as DragEvent).dataTransfer?.getData("text/plain");
+    if (widgetId) {
+      const widget = widgets.find((w) => w.id === widgetId);
+      if (widget) {
+        const newChart: ChartConfig = {
+          id: `chart-${Date.now()}`,
+          type: widget.type,
+          title: widget.name,
+          swapAxes: false,
+          x: item.x,
+          y: item.y,
+          w: 6,
+          h: 2,
+        };
+        setCharts((prevCharts) => [...prevCharts, newChart]);
+        toast.success("Chart added");
+      }
+    }
   };
 
   const layout: Layout[] = charts.map((chart) => ({
@@ -152,20 +156,49 @@ const NewDashboard = () => {
         </div>
         <div className="p-6 space-y-6 ">
           <div className="rounded-2xl p-5 bg-black">
-            <Button onClick={handleAddChart} className="gap-2 bg-white">
-              <Plus className="h-4 w-4" />
-              Add Chart
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="gap-2 bg-white">
+                  <Plus className="h-4 w-4" />
+                  Add Chart
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {widgets.map((widget) => (
+                  <DropdownMenuItem
+                    key={widget.id}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData("text/plain", widget.id);
+                    }}
+                    draggable
+                    className="flex gap-2"
+                  >
+                    <GripVertical className="h-4 w-4" />
+                    {widget.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             {charts.length === 0 ? (
-              <div className="flex min-h-[400px] items-center justify-center">
+              <div
+                className="flex min-h-[400px] items-center justify-center"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  const layout: Layout[] = [];
+                  const item: Layout = {
+                    x: 0,
+                    y: 0,
+                    w: 6,
+                    h: 2,
+                    i: `chart-${Date.now()}`,
+                  };
+                  onDrop(layout, item, e as unknown as Event);
+                }}
+              >
                 <div className="text-center">
                   <p className="mb-4 text-lg text-muted-foreground">
                     No charts yet
                   </p>
-                  <Button onClick={handleAddChart} className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Add Your First Chart
-                  </Button>
                 </div>
               </div>
             ) : (
@@ -179,6 +212,8 @@ const NewDashboard = () => {
                 draggableHandle=".drag-handle"
                 isResizable={true}
                 isDraggable={true}
+                onDrop={onDrop}
+                isDroppable={true}
               >
                 {charts.map((chart) => (
                   <div key={chart.id} className="drag-handle">

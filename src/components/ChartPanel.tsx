@@ -23,8 +23,12 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { Button } from "../components/ui/button";
-import { X } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 import ChartOptions from "./ChartOptions";
+import { useState } from "react";
+import { AddWidgetDialog } from "./new-dashboard/add-widget-dialog";
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
 
 interface ChartPanelProps {
   config: ChartConfig;
@@ -34,6 +38,8 @@ interface ChartPanelProps {
 
 export const ChartPanel = ({ config, onUpdate, onRemove }: ChartPanelProps) => {
   const data = generateMockData();
+  const [open, setOpen] = useState(false);
+  const { widgets } = useSelector((state: RootState) => state.widgets);
 
   const handleTypeChange = (type: ChartType) => {
     onUpdate(config.id, { type });
@@ -147,37 +153,69 @@ export const ChartPanel = ({ config, onUpdate, onRemove }: ChartPanelProps) => {
   };
 
   return (
-    <div className="flex h-full rounded-lg flex-col overflow-hidden bg-white shadow-xl">
-      <div className="flex items-center justify-between gap-2  bg-muted/50 p-3">
-        <h3 className="flex-1 truncate font-semibold text-card-foreground">
-          {config.title}
-        </h3>
+    <>
+      <div className="flex h-full rounded-lg flex-col overflow-hidden bg-white shadow-xl">
+        <div className="flex items-center justify-between gap-2  bg-muted/50 p-3">
+          <h3 className="flex-1 truncate font-semibold text-card-foreground">
+            {config.title}
+          </h3>
 
-        <div className="flex items-center gap-2">
-          <Select value={config.type} onValueChange={handleTypeChange}>
-            <SelectTrigger className="h-8 w-24 bg-card">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-black text-white">
-              <SelectItem value="bar">Bar</SelectItem>
-              <SelectItem value="line">Line</SelectItem>
-              <SelectItem value="pie">Pie</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Button
-            variant="destructive"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => onRemove(config.id)}
-            title="Remove Chart"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Select value={config.type} onValueChange={handleTypeChange}>
+              <SelectTrigger className="h-8 w-24 bg-card">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-black text-white">
+                <SelectItem value="bar">Bar</SelectItem>
+                <SelectItem value="line">Line</SelectItem>
+                <SelectItem value="pie">Pie</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setOpen(true)}
+              title="Edit Chart"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="destructive"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onRemove(config.id)}
+              title="Remove Chart"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
+        <ChartOptions config={config} onUpdate={onUpdate} />
+        <div className="flex-1 p-4">{renderChart()}</div>
       </div>
-      <ChartOptions config={config} onUpdate={onUpdate} />
-      <div className="flex-1 p-4">{renderChart()}</div>
-    </div>
+      <AddWidgetDialog
+        open={open}
+        onOpenChange={setOpen}
+        onSubmit={(data) => {
+          onUpdate(config.id, {
+            title: data.name,
+            type: data.type,
+            xAxis: data.xAxis,
+            yAxis: data.yAxis,
+          });
+        }}
+        widget={{
+          id: config.id,
+          name: config.title,
+          type: config.type,
+          xAxis: config.xAxis,
+          yAxis: Array.isArray(config.yAxis)
+            ? config.yAxis.join(",")
+            : config.yAxis,
+        }}
+        widgets={widgets}
+      />
+    </>
   );
 };

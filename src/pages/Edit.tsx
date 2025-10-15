@@ -9,24 +9,25 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../store";
+import {
+  addWidget,
+  deleteWidget,
+  updateWidget,
+} from "../store/widgetSlice";
+import { Widget } from "../types/widget";
 
 function Edit() {
   const [open, setOpen] = React.useState(false);
-  type WidgetType = "pie" | "line" | "bar";
-  type Widget = {
-    id: string;
-    name: string;
-    type: WidgetType;
-    xAxis?: string;
-    yAxis?: string;
-  };
-  const [widgets, setWidgets] = React.useState<Widget[]>([]);
+  const { widgets } = useSelector((state: RootState) => state.widgets);
+  const dispatch = useDispatch();
   const [selectedWidget, setSelectedWidget] = React.useState<Widget | undefined>(
     undefined
   );
 
   const handleDelete = (id: string) => {
-    setWidgets((prev) => prev.filter((w) => w.id !== id));
+    dispatch(deleteWidget(id));
   };
 
   return (
@@ -106,24 +107,20 @@ function Edit() {
         }}
         onSubmit={(data) => {
           if (selectedWidget) {
-            setWidgets((prev) =>
-              prev.map((w) =>
-                w.id === selectedWidget.id
-                  ? {
-                      id: selectedWidget.id,
-                      name: data.name,
-                      type: data.type,
-                      xAxis: data.xAxis,
-                      yAxis: data.yAxis,
-                    }
-                  : w
-              )
+            dispatch(
+              updateWidget({
+                id: selectedWidget.id,
+                name: data.name,
+                type: data.type,
+                xAxis: data.xAxis,
+                yAxis: data.yAxis,
+              })
             );
           } else {
             const id = `${Date.now()}-${Math.random()
               .toString(36)
               .slice(2, 8)}`;
-            setWidgets((prev) => [...prev, { id, ...data }]);
+            dispatch(addWidget({ id, ...data }));
           }
         }}
         widget={selectedWidget}
