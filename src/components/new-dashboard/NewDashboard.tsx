@@ -86,10 +86,6 @@ const NewDashboard = () => {
         <header className="border-b bg-[#c2c2c2] px-6 py-4 flex items-center justify-between">
           <h1 className="text-xl font-semibold text-foreground">Dashboard</h1>
           <div className="flex items-center gap-4">
-            <Button onClick={handleAddChart} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Chart
-            </Button>
             <span className="text-sm text-muted-foreground">
               10/15/2025, 4:08:02 AM
             </span>
@@ -154,42 +150,48 @@ const NewDashboard = () => {
             </div>
           </section>
         </div>
-        <div className=" p-4">
-          {charts.length === 0 ? (
-            <div className="flex min-h-[400px] items-center justify-center">
-              <div className="text-center">
-                <p className="mb-4 text-lg text-muted-foreground">
-                  No charts yet
-                </p>
-                <Button onClick={handleAddChart} className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add Your First Chart
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <ResponsiveGridLayout
-              className="layout"
-              layouts={{ lg: layout }}
-              breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-              cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-              rowHeight={150}
-              onLayoutChange={handleLayoutChange}
-              draggableHandle=".drag-handle"
-              isResizable={true}
-              isDraggable={true}
-            >
-              {charts.map((chart) => (
-                <div key={chart.id} className="drag-handle">
-                  <ChartPanel
-                    config={chart}
-                    onUpdate={handleChartUpdate}
-                    onRemove={handleRemoveChart}
-                  />
+        <div className="p-6 space-y-6 ">
+          <div className="rounded-2xl p-5 bg-black">
+            <Button onClick={handleAddChart} className="gap-2 bg-white">
+              <Plus className="h-4 w-4" />
+              Add Chart
+            </Button>
+            {charts.length === 0 ? (
+              <div className="flex min-h-[400px] items-center justify-center">
+                <div className="text-center">
+                  <p className="mb-4 text-lg text-muted-foreground">
+                    No charts yet
+                  </p>
+                  <Button onClick={handleAddChart} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add Your First Chart
+                  </Button>
                 </div>
-              ))}
-            </ResponsiveGridLayout>
-          )}
+              </div>
+            ) : (
+              <ResponsiveGridLayout
+                className="layout"
+                layouts={{ lg: layout }}
+                breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+                cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+                rowHeight={150}
+                onLayoutChange={handleLayoutChange}
+                draggableHandle=".drag-handle"
+                isResizable={true}
+                isDraggable={true}
+              >
+                {charts.map((chart) => (
+                  <div key={chart.id} className="drag-handle">
+                    <ChartPanel
+                      config={chart}
+                      onUpdate={handleChartUpdate}
+                      onRemove={handleRemoveChart}
+                    />
+                  </div>
+                ))}
+              </ResponsiveGridLayout>
+            )}
+          </div>
         </div>
       </main>
     </div>
