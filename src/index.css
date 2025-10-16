@@ -98,11 +98,15 @@
 
 @import "tailwindcss";
 
-@layer base {
+body {
+  background: #d1d1d1;
+}
+
+/* @layer base {
   * {
   }
 
   body {
     @apply bg-background text-foreground;
   }
-}
+} */

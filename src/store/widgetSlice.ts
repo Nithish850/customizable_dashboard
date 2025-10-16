@@ -1,5 +1,6 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import type { Widget } from "../../types/widget";
+import { createSlice } from "@reduxjs/toolkit";
+import type { PayloadAction } from "@reduxjs/toolkit";
+import type { Widget } from "../types/widget";
 
 interface WidgetState {
   widgets: Widget[];
