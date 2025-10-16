@@ -39,12 +39,16 @@ export const ChartPanel = ({ config, onUpdate, onRemove }: ChartPanelProps) => {
   };
 
   const renderChart = () => {
+    const filteredData = data.filter(
+      (d) => !config.hiddenProperties?.includes(d.name)
+    );
+
     const chartData = config.swapAxes
-      ? data.map((d) => ({
+      ? filteredData.map((d) => ({
           name: d.value.toString(),
           value: parseInt(d.name) || 0,
         }))
-      : data;
+      : filteredData;
 
     switch (config.type) {
       case "bar":
@@ -109,18 +113,18 @@ export const ChartPanel = ({ config, onUpdate, onRemove }: ChartPanelProps) => {
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={data}
+                data={filteredData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) =>
+                label={({ name, percent }: any) =>
                   `${name}: ${(percent * 100).toFixed(0)}%`
                 }
                 outerRadius={100}
                 fill="hsl(var(--chart-1))"
                 dataKey="value"
               >
-                {data.map((entry, index) => (
+                {filteredData.map((_, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={CHART_COLORS[index % CHART_COLORS.length]}

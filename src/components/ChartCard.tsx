@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Settings, GripVertical } from "lucide-react";
-import { PieChart, Pie, BarChart, Bar, LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, ResponsiveContainer } from "recharts";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Card } from "./ui/card";
@@ -52,7 +52,7 @@ export const ChartCard = ({ chart, onEdit }: ChartCardProps) => {
                 dataKey="value"
                 animationDuration={chart.animationDuration}
               >
-                {chart.data.map((entry: any, index: number) => (
+                {chart.data.map((_: any, index: number) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
@@ -85,19 +85,6 @@ export const ChartCard = ({ chart, onEdit }: ChartCardProps) => {
               {chart.showLegend && <Legend />}
               <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" animationDuration={chart.animationDuration} />
             </LineChart>
-          </ResponsiveContainer>
-        );
-      case "area":
-        return (
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart {...commonProps}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              {chart.showTooltip && <Tooltip />}
-              {chart.showLegend && <Legend />}
-              <Area type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" fill="hsl(var(--chart-1))" animationDuration={chart.animationDuration} />
-            </AreaChart>
           </ResponsiveContainer>
         );
       default:

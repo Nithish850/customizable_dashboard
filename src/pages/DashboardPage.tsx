@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, PieChart as PieChartIcon, BarChart3, LineChart as LineChartIcon, AreaChart as AreaChartIcon } from "lucide-react";
 import {
   DndContext,
@@ -20,7 +20,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from "../components/ui/button";
 import { ChartConfigDialog } from "../components/ChartConfigDialog";
 import { ChartCard } from "../components/ChartCard";
-import { mockCharts } from "../utils/mockData";
 import type { ChartConfig, ChartType } from "../types/chart";
 
 const DashboardPage = () => {
@@ -35,16 +34,6 @@ const DashboardPage = () => {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
-  useEffect(() => {
-    // Load mock charts on mount
-    setCharts(mockCharts);
-    // Show edit dialog for first chart on initial load
-    if (mockCharts.length > 0) {
-      setEditingChart(mockCharts[0]);
-      setDialogOpen(true);
-    }
-  }, []);
 
   const chartTypes = [
     { name: "Pie Chart", icon: PieChartIcon, type: "pie" as ChartType },
@@ -69,6 +58,11 @@ const DashboardPage = () => {
       showTooltip: true,
       animationDuration: 800,
       innerRadius: type === "pie" ? 0 : undefined,
+      swapAxes: false,
+      x: 0,
+      y: 0,
+      w: 6,
+      h: 2,
     };
     setCharts([...charts, newChart]);
     setIsOpen(false);

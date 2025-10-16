@@ -20,6 +20,11 @@ const defaultCharts: ChartConfig[] = [
     y: 0,
     w: 6,
     h: 2,
+    data: [],
+    showLegend: true,
+    showLabels: true,
+    showTooltip: true,
+    animationDuration: 500,
   },
 ];
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -68,6 +73,11 @@ const NewDashboard = () => {
       y: Infinity,
       w: 6,
       h: 2,
+      data: [],
+      showLegend: true,
+      showLabels: true,
+      showTooltip: true,
+      animationDuration: 500,
     };
     setCharts((prevCharts) => [...prevCharts, newChart]);
     toast.success("Chart added");
